@@ -8,6 +8,7 @@
 ##############################################################################
 
 import numpy as np
+import testing
 
 
 class DecisionTreeClassifier(object):
@@ -27,6 +28,7 @@ class DecisionTreeClassifier(object):
     
 
     def fit(self, x, y):
+        #####TODO: write if_pure(y) tests for len(np.unique(y)) == 1, then return unique[0];
         """ Constructs a decision tree classifier from data
         
         Args:
@@ -44,7 +46,10 @@ class DecisionTreeClassifier(object):
         #######################################################################
         #                 ** TASK 2.1: COMPLETE THIS METHOD **
         #######################################################################    
-        
+        classes = np.unique(y)
+        print("Entropy for the set is: ")
+        print(testing.calculate_entrophy(x, y, classes))
+        print(testing.induce_tree(x, y, classes))
 
         
         # set a flag so that we know that the classifier has been trained
