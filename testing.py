@@ -1,3 +1,4 @@
+import json5
 import numpy as np
 from read_data import read_dataset
 import math
@@ -39,13 +40,11 @@ def calculate_entrophy(x, y, classes):
         freq_labels[label] += 1
 
     entrophy = 0.0
-    for label, value in freq_labels.items(): ###### TODO: replace current_num_obs with frq_labels[label] (count of each class instance)
-        if (current_num_obs != 0):
+    for label, value in freq_labels.items():
+        if (value != 0):
             probability = (value / current_num_obs)
             if (probability > 0 and probability < 1):
                 entrophy -= probability * math.log(probability, 2)
-        elif (current_num_obs == 0): #doesn't do anything
-            entrophy -= 0
 
     # sanity check:
     if (sum(freq_labels.values()) != current_num_obs):
@@ -147,19 +146,51 @@ def split_by_best_rule(current_best_feature_index, current_best_i, x, y):
 # print(c)
 #print(d)
 
+class Node(dict):
+    def __init__(self):
+        super().__init__()
+        self.__dict__ = self
+        self.paths = {}
+
+    def to_json(self):
+        return json5.dumps(self)
+
+    
+
 
 ### Recursion:
-def induce_tree(x, y, classes):
-    #TODO: write base case
+def induce_tree(x, y, classes, node_level, parent_node):
+    # majority of this code needs a rewrite for multi-way branching decisions but is fine
+    # for our first pass at a binary decision classifier
+    if (len(y) == 0):
+        return
+    # base case
     if len(np.unique(y)) == 1:
-        #store y[0] in the node
+        parent_node.paths = y[0]
         return
     
     (feature_index, split_value) = calculate_best_info_gain(x, y, classes)
+
+    # path format is feature_index;split_value, except in the case of the last value which will
+    # be the biggest number in the feature_index column
+    # The path will be read during prediction as "get the value from the feature_index that matches
+    # is less than the split_value" where that value could be either a new path or an actual result
+
+    # create the nodes to the left and right that we will put either a new path into, or
+    # put an actual result (A, C etc. )
+
+    child_node_left = Node()
+    parent_node.paths[str(feature_index) + ';' + str(split_value)] = child_node_left
+
+    child_node_right = Node()
+    parent_node.paths[str(feature_index) + ';' + str(x[:, feature_index].max())] = child_node_right
+
     (left_x, left_y, right_x, right_y) = split_by_best_rule(feature_index, split_value, x, y)
+
     #check logic in entropy function for when a class has 0 counts
-    induce_tree(left_x, left_y, classes)
-    induce_tree(right_x, right_y, classes)
+    induce_tree(left_x, left_y, classes, node_level+1, child_node_left)
+    induce_tree(right_x, right_y, classes, node_level+1, child_node_right)
+
     return "finished"
 
 
