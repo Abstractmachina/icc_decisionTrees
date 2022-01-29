@@ -1,4 +1,3 @@
-import json5
 import numpy as np
 from read_data import read_dataset
 import math
@@ -144,18 +143,7 @@ def split_by_best_rule(current_best_feature_index, current_best_i, x, y):
 # print(a)
 #print(b)
 # print(c)
-#print(d)
-
-class Node(dict):
-    def __init__(self):
-        super().__init__()
-        self.__dict__ = self
-        self.paths = {}
-
-    def to_json(self):
-        return json5.dumps(self)
-
-    
+#print(d)    
 
 
 ### Recursion:
@@ -166,7 +154,9 @@ def induce_tree(x, y, classes, node_level, parent_node):
         return
     # base case
     if len(np.unique(y)) == 1:
-        parent_node.paths = y[0]
+        # I would still prefer that this worked so that it fully replaced the dict with y[0] but
+        # I am struggling to get that to work. This is not a disastrous workaround.
+        parent_node["terminating_node"] = y[0]
         return
     if len(np.unique(x, axis=0)) <= 1:
         #TODO: should do a count of most commonly occuring class, and returnt that in node
@@ -183,11 +173,11 @@ def induce_tree(x, y, classes, node_level, parent_node):
     # create the nodes to the left and right that we will put either a new path into, or
     # put an actual result (A, C etc. )
 
-    child_node_left = Node()
-    parent_node.paths[str(feature_index) + ';' + str(split_value)] = child_node_left
+    child_node_left = {}
+    parent_node[str(feature_index) + ',' + str(split_value)] = child_node_left
 
-    child_node_right = Node()
-    parent_node.paths[str(feature_index) + ';' + str(x[:, feature_index].max())] = child_node_right
+    child_node_right = {}
+    parent_node[str(feature_index) + ',' + str(x[:, feature_index].max())] = child_node_right
 
     (left_x, left_y, right_x, right_y) = split_by_best_rule(feature_index, split_value, x, y)
 
