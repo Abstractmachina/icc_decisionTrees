@@ -7,6 +7,7 @@
 # You are free to add any other methods as needed. 
 ##############################################################################
 
+import json5
 import numpy as np
 import testing
 
@@ -26,6 +27,9 @@ class DecisionTreeClassifier(object):
     def __init__(self):
         self.is_trained = False
     
+    @staticmethod
+    def root_to_json(root_node):
+        return
 
     def fit(self, x, y):
         #####TODO: write if_pure(y) tests for len(np.unique(y)) == 1, then return unique[0];
@@ -49,9 +53,14 @@ class DecisionTreeClassifier(object):
         classes = np.unique(y)
         print("Entropy for the set is: ")
         print(testing.calculate_entrophy(x, y, classes))
-        print(testing.induce_tree(x, y, classes))
+        root_node = testing.Node()
+        print(testing.induce_tree(x, y, classes, 0, root_node))
+  
+        # write model to file
+        model = root_node.to_json()
+        with open('model.json', 'w') as f:
+            json5.dump(model, f)
 
-        
         # set a flag so that we know that the classifier has been trained
         self.is_trained = True
         
@@ -84,7 +93,14 @@ class DecisionTreeClassifier(object):
         #                 ** TASK 2.2: COMPLETE THIS METHOD **
         #######################################################################
         
+        # read model from file
+        with open('model.json', 'r') as f:
+            loaded_model = json5.load(f)
+        
+        print(type(loaded_model))
     
         # remember to change this if you rename the variable
         return predictions
+
+    
         

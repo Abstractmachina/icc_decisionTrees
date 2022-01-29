@@ -22,9 +22,9 @@ if __name__ == "__main__":
         ])
     
     y = np.array(["A", "A", "A", "C", "C", "C"])'''
-
-    (x, y, classes) = read_dataset("data/simple1.txt")
     
+    (x, y, classes) = read_dataset("data/simple1.txt")
+
     
     print("Training the decision tree...")
     classifier = DecisionTreeClassifier()
