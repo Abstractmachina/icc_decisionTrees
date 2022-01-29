@@ -151,9 +151,18 @@ def split_by_best_rule(current_best_feature_index, current_best_i, x, y):
 ### Recursion:
 def induce_tree(x, y, classes):
     #TODO: write base case
-    if len(np.unique(y)) == 1:
+    '''print(np.unique(y))
+    print(x)
+    print(y)
+    ent = calculate_entrophy(x, y, classes)
+    print(ent)'''
+    if len(np.unique(y)) <= 1 :
         #store y[0] in the node
         return
+    if len(np.unique(x, axis=0)) <= 1:
+        #TODO: should do a count of most commonly occuring class, and returnt that in node
+        return
+    
     
     (feature_index, split_value) = calculate_best_info_gain(x, y, classes)
     (left_x, left_y, right_x, right_y) = split_by_best_rule(feature_index, split_value, x, y)
