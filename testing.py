@@ -54,16 +54,9 @@ def calculate_entrophy(x, y, classes):
 
 def make_opposite_filter(i, feature_index, x):
     opposite_filter = (x[:, feature_index] < i)
-    '''opposite_filter = list()
-    for i in filter:
-        if i == True:
-            opposite_filter.append(False) 
-        else:
-            opposite_filter.append(True) '''
     #opposite_filter = np.array(opposite_filter)
     return opposite_filter
 
-####TODO: put this into a function, which returns feature index, and split value i. In main recursive, we need to assign this to a node
 ####TODO: think about how we adapt this to handle multivariate trees (i stored as list, some sort of linked list in python)
 def calculate_best_info_gain(x, y, classes):
     DB_entrophy = calculate_entrophy(x, y, classes)
@@ -71,16 +64,20 @@ def calculate_best_info_gain(x, y, classes):
     num_of_obs = len(y)
 
     ### Getting optiomal splitting rule:
+    # Store current max info gain, the feature index, and the splitting value
+    current_max_info_gained = 0.0
+    current_best_feature_index = 0
+    current_best_i = 0
     # Iterate over all features :
     container = []
     for feature_index in range(num_of_features):
         # For each feature (column):
         col_value_max = x[:, feature_index].max()
         col_value_min = x[:, feature_index].min()
+
         ##TODO: think about optimising loop with np.unique for featureset 
         for i in range(col_value_min, col_value_max + 1): 
             ######### TODO: Consider the case that dataset is fed floats
-            ######### TODO: Filtering.invert to convert trues to false etc
             # LEFT: 
             filtering = (x[:, feature_index] >= i)
             filtered_x_left = x[filtering, :]
@@ -96,22 +93,13 @@ def calculate_best_info_gain(x, y, classes):
             # Information gained:
             proportion = len(filtered_y_left) / (len(filtered_y_left) + len(filtered_y_right))
             info_gained = DB_entrophy - (proportion * entrophy_left + (1 - proportion) * entrophy_right)
-            # Gathering all useful info inside the container:
-            # The container is a list and its elements are nested lists.
-            container.append([info_gained, feature_index, i]) # [info_gained, feature_index, i] is a list of 3 elements
+            # DONE: update max info gained, best feature, and i if info gained is higher than current best
+            if info_gained > current_max_info_gained:
+                current_max_info_gained = info_gained
+                current_best_feature_index = feature_index
+                current_best_i = i
 
-    # Find max information gained and associated feature_index and i:
-    ####### TODO: move this to the top, test if infogained > current info gained value, and if yes, replace feature index and i with calculated value
-    current_max_info_gained = 0.0
-    current_best_feature_index = 0
-    current_best_i = 0
-    for a_list in container:
-        if current_max_info_gained < a_list[0]:         # info_gained 
-            current_max_info_gained = a_list[0]         # info_gained 
-            current_best_feature_index = a_list[1]      # feature_index
-            current_best_i = a_list[2]                  # i
-
-    print(current_max_info_gained, current_best_feature_index, current_best_i)
+    #print(current_max_info_gained, current_best_feature_index, current_best_i)
     return (current_best_feature_index, current_best_i)
 
 def split_by_best_rule(current_best_feature_index, current_best_i, x, y):
@@ -157,13 +145,18 @@ def induce_tree(x, y, classes, node_level, parent_node):
         # I would still prefer that this worked so that it fully replaced the dict with y[0] but
         # I am struggling to get that to work. This is not a disastrous workaround.
         parent_node["terminating_node"] = y[0]
+        print(y[0])
         return
     if len(np.unique(x, axis=0)) <= 1:
-        #TODO: should do a count of most commonly occuring class, and returnt that in node
-        return
+        #TODO: should do a count of most commonly occuring class, and return that in node
+        unique, frequency = np.unique(y, return_counts=True) #unique array with corresponding count
+        parent_node["terminating_node"] = unique[np.argmax(frequency)] # place value into terminating
+        print(unique[np.argmax(frequency)])
+        return 
     
     
     (feature_index, split_value) = calculate_best_info_gain(x, y, classes)
+    print(feature_index, split_value)
 
     # path format is feature_index;split_value, except in the case of the last value which will
     # be the biggest number in the feature_index column
@@ -177,18 +170,28 @@ def induce_tree(x, y, classes, node_level, parent_node):
     parent_node[str(feature_index) + ',' + str(split_value)] = child_node_left
 
     child_node_right = {}
-    parent_node[str(feature_index) + ',' + str(x[:, feature_index].max())] = child_node_right
+    parent_node[str(feature_index) + ',' + str(0)] = child_node_right
 
     (left_x, left_y, right_x, right_y) = split_by_best_rule(feature_index, split_value, x, y)
+    #print(left_x)
+    #print(left_y)
 
     #check logic in entropy function for when a class has 0 counts
     induce_tree(left_x, left_y, classes, node_level+1, child_node_left)
+    #print(right_x)
+    #print(right_y)
     induce_tree(right_x, right_y, classes, node_level+1, child_node_right)
 
     return "finished"
 
+### Evaluation (basic)
+def compute_accuracy(y_gold, y_prediction):
+    assert len(y_gold) == len(y_prediction)  
 
+    if len(y_gold) == 0:
+        return 0
 
+    return np.sum(y_gold == y_prediction) / len(y_gold)
 
 
 

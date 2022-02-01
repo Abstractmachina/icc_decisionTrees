@@ -118,7 +118,7 @@ class DecisionTreeClassifier(object):
                 value = int(split_key[1])
 
                 #do it all again from the next node, recursively.
-                if (x[row_number, feature_index] < value):
+                if (x[row_number, feature_index] >= value):
                     model = model[key]
                     break
 
