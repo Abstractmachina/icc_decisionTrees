@@ -72,11 +72,10 @@ def calculate_best_info_gain(x, y, classes):
     container = []
     for feature_index in range(num_of_features):
         # For each feature (column):
-        col_value_max = x[:, feature_index].max()
-        col_value_min = x[:, feature_index].min()
-
-        ##TODO: think about optimising loop with np.unique for featureset 
-        for i in range(col_value_min, col_value_max + 1): 
+        #col_value_max = x[:, feature_index].max()
+        #col_value_min = x[:, feature_index].min()
+        unique_values = np.unique(x[:,feature_index])
+        for i in unique_values: 
             ######### TODO: Consider the case that dataset is fed floats
             # LEFT: 
             filtering = (x[:, feature_index] >= i)
