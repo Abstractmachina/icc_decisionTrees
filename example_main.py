@@ -13,13 +13,8 @@ from numpy.random import default_rng
 from testing import compute_accuracy
 
 if __name__ == "__main__":
-<<<<<<< HEAD
-    print("Loading the training dataset...");
-    x = np.array([
-=======
     print("Loading the training dataset...")
     '''x_train = np.array([
->>>>>>> fc969b6cd7bee241756b46bbf1e9bce8d8104f07
             [5,7,1],
             [4,6,2],
             [4,6,3], 
@@ -28,12 +23,6 @@ if __name__ == "__main__":
             [5,2,6]
         ])
     
-<<<<<<< HEAD
-    y = np.array(["A", "A", "A", "C", "C", "C"])
-    
-    (x, y, classes) = read_dataset("data/train_full.txt")
-
-=======
     y_train = np.array(["A", "A", "A", "C", "C", "C"])'''
     
     (x, y, classes) = read_dataset("data/train_full.txt")
@@ -44,7 +33,6 @@ if __name__ == "__main__":
     #print(y_train)
     #print(x_test)
     #print(y_test)
->>>>>>> fc969b6cd7bee241756b46bbf1e9bce8d8104f07
     
     print("Training the decision tree...")
     classifier = DecisionTreeClassifier()
