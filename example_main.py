@@ -12,7 +12,7 @@ from read_data import read_dataset
 
 if __name__ == "__main__":
     print("Loading the training dataset...");
-    '''x = np.array([
+    x = np.array([
             [5,7,1],
             [4,6,2],
             [4,6,3], 
@@ -21,9 +21,9 @@ if __name__ == "__main__":
             [5,2,6]
         ])
     
-    y = np.array(["A", "A", "A", "C", "C", "C"])'''
+    y = np.array(["A", "A", "A", "C", "C", "C"])
     
-    (x, y, classes) = read_dataset("data/simple1.txt")
+    (x, y, classes) = read_dataset("data/train_full.txt")
 
     
     print("Training the decision tree...")
