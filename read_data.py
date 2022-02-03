@@ -1,5 +1,7 @@
+import numpy as np
+from numpy.random import default_rng
+
 def read_dataset(filepath): # eg. "data/train_full.txt" 
-    import numpy as np
     """Reads a given dataset.
 
     Args:
@@ -24,3 +26,14 @@ def read_dataset(filepath): # eg. "data/train_full.txt"
     y = np.array(y_labels)
 
     return (x, y, classes)
+
+def split_dataset(x, y, test_proportion, random_generator=default_rng()):
+
+    shuffled_indices = random_generator.permutation(len(x))
+    n_test = round(len(x) * test_proportion)
+    n_train = len(x) - n_test
+    x_train = x[shuffled_indices[:n_train]]
+    y_train = y[shuffled_indices[:n_train]]
+    x_test = x[shuffled_indices[n_train:]]
+    y_test = y[shuffled_indices[n_train:]]
+    return (x_train, x_test, y_train, y_test)
