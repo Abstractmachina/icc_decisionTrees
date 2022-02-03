@@ -8,9 +8,9 @@
 ##############################################################################
 
 import json
+#TODO: remove posixpath?
 from posixpath import split
 import numpy as np
-from sqlalchemy import true
 import testing
 
 
@@ -49,10 +49,10 @@ class DecisionTreeClassifier(object):
         #                 ** TASK 2.1: COMPLETE THIS METHOD **
         #######################################################################    
         classes = np.unique(y)
-        print("Entropy for the set is: ")
-        print(testing.calculate_entrophy(x, y, classes))
+        #print("Entropy for the set is: ")
+        #print(testing.calculate_entrophy(x, y, classes))
         model = {}
-        print(testing.induce_tree(x, y, classes, 0, model))
+        testing.induce_tree(x, y, classes, 0, model)
   
         # write model to file
         
@@ -105,7 +105,7 @@ class DecisionTreeClassifier(object):
         while True:
             # loop through every key at this level of the model to see which is viable
             k = model.keys()
-            print(k)
+            #print(k)
             for key in k:
                 # base case, if we reach a terminating node then set predictions[row_number] to v
                 if (key == "terminating_node"):
