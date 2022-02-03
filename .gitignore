@@ -1,3 +1,5 @@
 **/__pycache__
 *.pyc
 intro_to_ml_cw1/*
+model.json
+example_main.py
