@@ -12,6 +12,7 @@ import json
 from posixpath import split
 import numpy as np
 import testing
+from improvedTesting_T import induce_tree_maxDepth
 
 
 class DecisionTreeClassifier(object):
@@ -28,8 +29,9 @@ class DecisionTreeClassifier(object):
 
     def __init__(self):
         self.is_trained = False
+        self._treeDepth = 1
 
-    def fit(self, x, y):
+    def fit(self, x, y, maxDepth = 0):
         #####TODO: write if_pure(y) tests for len(np.unique(y)) == 1, then return unique[0];
         """ Constructs a decision tree classifier from data
         
@@ -52,8 +54,13 @@ class DecisionTreeClassifier(object):
         #print("Entropy for the set is: ")
         #print(testing.calculate_entrophy(x, y, classes))
         model = {}
-        testing.induce_tree(x, y, classes, 0, model)
-  
+
+        if maxDepth == 0:
+            testing.induce_tree(x, y, classes, 0, model)
+        else:
+            self._treeDepth = 1
+            self._treeDepth = induce_tree_maxDepth(x,y,classes, 0, model, maxDepth, self._treeDepth)
+        
         # write model to file
         
         with open('model.json', 'w') as f:
@@ -63,6 +70,10 @@ class DecisionTreeClassifier(object):
         self.is_trained = True
         
     
+    def getFinalTreeDepth(self):
+        return self._treeDepth
+
+
     def predict(self, x):
         """ Predicts a set of samples using the trained DecisionTreeClassifier.
         
