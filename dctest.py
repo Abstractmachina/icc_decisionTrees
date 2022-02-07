@@ -7,12 +7,8 @@
 # You are free to add any other methods as needed. 
 ##############################################################################
 
-import json
-#TODO: remove posixpath?
-from posixpath import split
 import numpy as np
-import testing
-
+from my_helper import read_dataset
 
 class DecisionTreeClassifier(object):
     """ Basic decision tree classifier
@@ -28,10 +24,9 @@ class DecisionTreeClassifier(object):
 
     def __init__(self):
         self.is_trained = False
-        self._treeDepth = 1
+    
 
-    def fit(self, x, y, maxDepth = 0):
-        #####TODO: write if_pure(y) tests for len(np.unique(y)) == 1, then return unique[0];
+    def fit(self, x, y):
         """ Constructs a decision tree classifier from data
         
         Args:
@@ -49,27 +44,13 @@ class DecisionTreeClassifier(object):
         #######################################################################
         #                 ** TASK 2.1: COMPLETE THIS METHOD **
         #######################################################################    
-        classes = np.unique(y)
-        #print("Entropy for the set is: ")
-        #print(testing.calculate_entrophy(x, y, classes))
-        model = {}
-
-
-        testing.induce_tree(x, y, classes, 0, model)
         
-        # write model to file
-        
-        with open('model.json', 'w') as f:
-            f.write(json.dumps(model))
 
+        
         # set a flag so that we know that the classifier has been trained
         self.is_trained = True
         
     
-    def getFinalTreeDepth(self):
-        return self._treeDepth
-
-
     def predict(self, x):
         """ Predicts a set of samples using the trained DecisionTreeClassifier.
         
@@ -98,35 +79,26 @@ class DecisionTreeClassifier(object):
         #                 ** TASK 2.2: COMPLETE THIS METHOD **
         #######################################################################
         
-        # read model from file
-        with open('model.json', 'r') as f:
-            model = json.load(f)
-
-        # TODO guarantee there's a better way to do this with numpy but we can look into that in future
-        for row_number in range(0, len(x)):
-            self.check_nodes(x, model, predictions, row_number)
-                
+    
+        # remember to change this if you rename the variable
         return predictions
         
-    def check_nodes(self, x, model, predictions, row_number):
-        while True:
-            # loop through every key at this level of the model to see which is viable
-            k = model.keys()
-            #print(k)
-            for key in k:
-                # base case, if we reach a terminating node then set predictions[row_number] to v
-                if (key == "terminating_node"):
-                    predictions[row_number] = model[key]
-                    return
+    def induce_tree(self, x, y):
+        return
+    
+    def calculate_h(self, x, y):
+        unique_classes = np.unique(y)
+        total_instances = len(y)
 
-                # split the key out into its constituent parts
-                split_key = key.split(',')
-                feature_index = int(split_key[0])
-                value = int(split_key[1])
-
-                #do it all again from the next node, recursively.
-                if (x[row_number, feature_index] >= value):
-                    model = model[key]
-                    break
-
+        for (
         
+        #print(total_instances)
+        #print("Here i am!!")
+        #print(unique_classes)
+        
+        return
+    
+(x1, y1, classes1) = read_dataset("data/train_full.txt")
+classifier = DecisionTreeClassifier()
+classifier.calculate_h(x1, y1)
+    

@@ -11,7 +11,7 @@ from classification import DecisionTreeClassifier
 from improvement import train_and_predict
 from read_data import read_dataset, split_dataset
 from numpy.random import default_rng
-from testing import compute_accuracy, confusion_matrix, precision, recall, f1_score, train_test_k_fold, k_fold_split
+from evaluate import compute_accuracy, confusion_matrix, precision, recall, f1_score, train_test_k_fold, k_fold_split
 
 if __name__ == "__main__":
     print("Loading the training dataset...")
@@ -40,7 +40,7 @@ if __name__ == "__main__":
     classifier.fit(x, y)
 
     print("Loading the test set...")
-    
+
     print("Making predictions on the test set...")
     predictions = classifier.predict(x_test)
     print("\nPredictions: {}".format(predictions))
@@ -76,12 +76,15 @@ if __name__ == "__main__":
     print(f)
     print("\nMacro F1 score: ")
     print(macro_f)
+
+
     #Cross validation
+    n_folds = 100
     cross_validation_acc = []
     cross_validation_std = []
     predictions_list = []
 
-    for (train_indices, test_indices) in train_test_k_fold(10, len(x), rg):
+    for (train_indices, test_indices) in train_test_k_fold(n_folds, len(x), 0.2, rg):
         
         x_train = x[train_indices]
         y_train = y[train_indices]
@@ -98,6 +101,7 @@ if __name__ == "__main__":
         predictions_list.append(predictions_test)
 
     
+    print(cross_validation_acc)
     avg_acc = sum(cross_validation_acc)/len(cross_validation_acc)
     print("\nAverage accuracy of cross validation: ")
     print(avg_acc)
