@@ -50,15 +50,11 @@ class DecisionTreeClassifier(object):
         #                 ** TASK 2.1: COMPLETE THIS METHOD **
         #######################################################################    
         classes = np.unique(y)
-        #print("Entropy for the set is: ")
-        #print(testing.calculate_entrophy(x, y, classes))
+
         model = {}
-
-
         testing.induce_tree(x, y, classes, 0, model)
         
         # write model to file
-        
         with open('model.json', 'w') as f:
             f.write(json.dumps(model))
 

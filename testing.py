@@ -149,7 +149,6 @@ def induce_tree(x, y, classes, node_level, parent_node):
         parent_node["terminating_node"] = unique[np.argmax(frequency)] # place value into terminating
         return True
     
-    
 
     (feature_index, split_value) = calculate_best_info_gain(x, y, classes)
 
