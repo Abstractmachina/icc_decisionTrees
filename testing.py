@@ -134,32 +134,24 @@ def split_by_best_rule(current_best_feature_index, current_best_i, x, y):
 
 ### Recursion:
 def induce_tree(x, y, classes, node_level, parent_node):
-    # majority of this code needs a rewrite for multi-way branching decisions but is fine
-    # for our first pass at a binary decision classifier
+
+    # base cases
     if (len(y) == 0):
         return True
-    # base case
+
     if len(np.unique(y)) == 1:
-        # I would still prefer that this worked so that it fully replaced the dict with y[0] but
-        # I am struggling to get that to work. This is not a disastrous workaround.
         parent_node["terminating_node"] = y[0]
-        #print(y[0])
         return True
+
     if len(np.unique(x, axis=0)) <= 1:
         #TODO: should do a count of most commonly occuring class, and return that in node
         unique, frequency = np.unique(y, return_counts=True) #unique array with corresponding count
         parent_node["terminating_node"] = unique[np.argmax(frequency)] # place value into terminating
-        #print(unique[np.argmax(frequency)])
-        return  True
+        return True
     
     
-    (feature_index, split_value) = calculate_best_info_gain(x, y, classes)
-    #print(feature_index, split_value)
 
-    # path format is feature_index;split_value, except in the case of the last value which will
-    # be the biggest number in the feature_index column
-    # The path will be read during prediction as "get the value from the feature_index that matches
-    # is less than the split_value" where that value could be either a new path or an actual result
+    (feature_index, split_value) = calculate_best_info_gain(x, y, classes)
 
     # create the nodes to the left and right that we will put either a new path into, or
     # put an actual result (A, C etc. )
@@ -171,11 +163,7 @@ def induce_tree(x, y, classes, node_level, parent_node):
     parent_node[str(feature_index) + ',' + str(0)] = child_node_right
 
     (left_x, left_y, right_x, right_y) = split_by_best_rule(feature_index, split_value, x, y)
-    #print(left_x)
-    #print(left_y)
 
     #check logic in entropy function for when a class has 0 counts
     induce_tree(left_x, left_y, classes, node_level+1, child_node_left)
-    #print(right_x)
-    #print(right_y)
     induce_tree(right_x, right_y, classes, node_level+1, child_node_right)
