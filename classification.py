@@ -103,9 +103,8 @@ class DecisionTreeClassifier(object):
     def check_nodes(self, x, model, predictions, row_number):
         while True:
             # loop through every key at this level of the model to see which is viable
-            k = model.keys()
             #print(k)
-            for key in k:
+            for key in model.keys():
                 # base case, if we reach a terminating node then set predictions[row_number] to value
                 if (key == "terminating_node"):
                     predictions[row_number] = model[key]
@@ -121,4 +120,21 @@ class DecisionTreeClassifier(object):
                     model = model[key]
                     break
 
+    def prune_nodes(self):
+        self.prune_nodes_helper(self.model)
+
+    # takes the root node as its argument when checking the entire tree
+    def prune_nodes_helper(self, model):
+        term_count = 0
+        # base case
+        #if the keys of the two nodes below us are "terminating_node" then we've found the structure we're looking for - stop recursively checking now.
+        for values in model.values():
+            if "terminating_node" in values.keys():
+                term_count += 1
+            else:
+                self.prune_nodes_helper(values)
+
+        if term_count == 2:
+            print(model)
+            return
         
