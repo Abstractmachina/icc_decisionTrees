@@ -1,4 +1,6 @@
+from posixpath import split
 import numpy as np
+import node
 from read_data import read_dataset
 import math
 from numpy.random import default_rng
@@ -140,7 +142,7 @@ def induce_tree(x, y, classes, node_level, parent_node):
         return True
 
     if len(np.unique(y)) == 1:
-        parent_node["terminating_node"] = y[0]
+        parent_node.classification = y[0]
         return True
 
     if len(np.unique(x, axis=0)) <= 1:
@@ -155,14 +157,14 @@ def induce_tree(x, y, classes, node_level, parent_node):
     # create the nodes to the left and right that we will put either a new path into, or
     # put an actual result (A, C etc. )
 
-    child_node_left = {}
-    parent_node[str(feature_index) + ',' + str(split_value)] = child_node_left
-
-    child_node_right = {}
-    parent_node[str(feature_index) + ',' + str(0)] = child_node_right
+    parent_node.feature_index = feature_index
+    parent_node.split_value = split_value
+    parent_node.left_node = node.Node()
+    parent_node.right_node = node.Node()
+    parent_node.data = x
 
     (left_x, left_y, right_x, right_y) = split_by_best_rule(feature_index, split_value, x, y)
 
     #check logic in entropy function for when a class has 0 counts
-    induce_tree(left_x, left_y, classes, node_level+1, child_node_left)
-    induce_tree(right_x, right_y, classes, node_level+1, child_node_right)
+    induce_tree(left_x, left_y, classes, node_level+1, parent_node.left_node)
+    induce_tree(right_x, right_y, classes, node_level+1, parent_node.right_node)
