@@ -207,4 +207,6 @@ def train_test_k_fold(n_folds, n_instances, proportion_test, random_generator=de
         train_indices = np.setdiff1d(train_indices, test_indices)
 
         folds.append([train_indices, test_indices])
+    
+    print("done with generating set indices")
     return folds
