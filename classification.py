@@ -121,7 +121,7 @@ class DecisionTreeClassifier(object):
     def prune_nodes_helper(self, node):
         if (node.left_node.classification and node.right_node.classification):
             print("Terminating node, left=" + node.left_node.classification + ", right=" + node.right_node.classification)
-        
+            print(node.calculate_most_common())
         if (not node.left_node.classification):
             self.prune_nodes_helper(node.left_node)
         if (not node.right_node.classification):

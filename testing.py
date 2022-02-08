@@ -161,7 +161,7 @@ def induce_tree(x, y, classes, node_level, parent_node):
     parent_node.split_value = split_value
     parent_node.left_node = node.Node()
     parent_node.right_node = node.Node()
-    parent_node.data = x
+    parent_node.data = y
 
     (left_x, left_y, right_x, right_y) = split_by_best_rule(feature_index, split_value, x, y)
 

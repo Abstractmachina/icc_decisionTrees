@@ -1,3 +1,5 @@
+import numpy as np
+
 class Node():
     def __init__(self, data = None):
         self.left_node = None
@@ -9,3 +11,8 @@ class Node():
 
     def __str__(self):
         return str(self.data)
+
+    def calculate_most_common(self):
+        print(type(self.data))
+        fdist=dict(zip(*np.unique(self.data, return_counts=True)))
+        return list(fdist)[-1]
