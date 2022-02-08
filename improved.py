@@ -208,8 +208,7 @@ def induce_tree(x, y, classes, node_level, parent_node):
     #print(right_x)
     #print(right_y)
     induce_tree(right_x, right_y, classes, node_level+1, child_node_right)
-
-    return "finished"
+    return
 
 ### Evaluation (basic)
 def compute_accuracy(y_gold, y_prediction):

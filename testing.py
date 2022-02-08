@@ -2,6 +2,7 @@ import numpy as np
 from read_data import read_dataset
 import math
 from numpy.random import default_rng
+import random
 
 (x, y, classes) = read_dataset("data/simple2.txt")
 
@@ -63,7 +64,8 @@ def calculate_best_info_gain(x, y, classes):
     DB_entrophy = calculate_entrophy(x, y, classes)
     num_of_features = len(x[0,:])
     num_of_obs = len(y)
-
+    #print(x)
+    #print(y)
     ### Getting optiomal splitting rule:
     # Store current max info gain, the feature index, and the splitting value
     current_max_info_gained = 0.0
@@ -76,7 +78,7 @@ def calculate_best_info_gain(x, y, classes):
         # For each feature (column):
         for i in unique_values: 
             ######### TODO: Consider the case that dataset is fed floats
-            # LEFT: 
+            # LEFT:
             filtering = (x[:, feature_index] >= i)
             filtered_x_left = x[filtering, :]
             filtered_y_left = y[filtering]
@@ -96,11 +98,16 @@ def calculate_best_info_gain(x, y, classes):
                 current_max_info_gained = info_gained
                 current_best_feature_index = feature_index
                 current_best_i = i
+    if current_max_info_gained == 0:
+        print(x)
+        print(y)
 
-    #print(current_max_info_gained, current_best_feature_index, current_best_i)
-    return (current_best_feature_index, current_best_i)
 
-def split_by_best_rule(current_best_feature_index, current_best_i, x, y):
+    #print(current_best_feature_index, current_best_i)
+    return (current_best_feature_index, current_best_i, current_max_info_gained)
+
+#TODO: delete random features after show and tell
+def split_by_best_rule(current_best_feature_index, current_best_i, x, y, random_features=0):
     """Split the dataset so that information gained of the resulting split is maximised.
 
     Args:
@@ -116,9 +123,21 @@ def split_by_best_rule(current_best_feature_index, current_best_i, x, y):
     left_x = x[filtering, :]
     left_y = y[filtering]
     # RIGHT:
+    
     opposite_filtering = make_opposite_filter(current_best_i, current_best_feature_index, x)
     right_x = x[opposite_filtering, :]
     right_y = y[opposite_filtering]
+
+    if len(left_x) == 0 or len(left_y) == 0:
+        print(current_best_feature_index, current_best_i)
+        print(random_features)
+        print(right_x)
+        print(right_y)
+    if len(right_x) == 0 or len(right_x) == 0:
+        print(random_features)
+        print(current_best_feature_index, current_best_i)
+        print(left_x)
+        print(left_y)
     return (left_x, left_y, right_x, right_y)
 
 
@@ -134,10 +153,9 @@ def split_by_best_rule(current_best_feature_index, current_best_i, x, y):
 
 ### Recursion:
 def induce_tree(x, y, classes, node_level, parent_node):
-    # majority of this code needs a rewrite for multi-way branching decisions but is fine
-    # for our first pass at a binary decision classifier
-    if (len(y) == 0):
-        return True
+    #Catches case if we ever pass an empty subset, which should not happen
+    assert(len(y) != 0)
+    
     # base case
     if len(np.unique(y)) == 1:
         # I would still prefer that this worked so that it fully replaced the dict with y[0] but
@@ -145,15 +163,15 @@ def induce_tree(x, y, classes, node_level, parent_node):
         parent_node["terminating_node"] = y[0]
         #print(y[0])
         return True
-    if len(np.unique(x, axis=0)) <= 1:
-        #TODO: should do a count of most commonly occuring class, and return that in node
+    
+    (feature_index, split_value, info_gain) = calculate_best_info_gain(x, y, classes)
+
+    #another base case: if splitting yields no information gain, take majority label
+    if info_gain == 0:
         unique, frequency = np.unique(y, return_counts=True) #unique array with corresponding count
         parent_node["terminating_node"] = unique[np.argmax(frequency)] # place value into terminating
         #print(unique[np.argmax(frequency)])
         return  True
-    
-    
-    (feature_index, split_value) = calculate_best_info_gain(x, y, classes)
     #print(feature_index, split_value)
 
     # path format is feature_index;split_value, except in the case of the last value which will
@@ -179,3 +197,56 @@ def induce_tree(x, y, classes, node_level, parent_node):
     #print(right_x)
     #print(right_y)
     induce_tree(right_x, right_y, classes, node_level+1, child_node_right)
+
+def random_forest_classifier(x, y, classes, node_level, parent_node, p_value):
+
+    #Catches case if we ever pass an empty subset, which should not happen
+    assert(len(y) != 0)
+
+    # base case, if there is only 1 class left in set
+    if len(np.unique(y)) == 1:
+        parent_node["terminating_node"] = y[0]
+        #print(y[0])
+        return True
+    
+    #Generate dataset containing only features listed in random_features
+    random_features = random.sample(range(0, len(x[0,:])), p_value)
+    x_forest = x[:,random_features]
+    
+    #print(len(np.unique(x_forest)))
+    #case where the subset with 4 features are all the same, re-randomise until this isn't the case
+    while len(np.unique(x_forest, axis=0)) == 1:
+        #print("entered while loop")
+        random_features = random.sample(range(0, len(x[0,:])), p_value)
+        x_forest = x[:,random_features]
+    #print(x_forest)
+    
+    (feature_index, split_value, info_gain) = calculate_best_info_gain(x_forest, y, classes)
+
+    #another base case: if splitting yields no information gain, take majority label
+    if info_gain == 0:
+        unique, frequency = np.unique(y, return_counts=True) #unique array with corresponding count
+        parent_node["terminating_node"] = unique[np.argmax(frequency)] # place value into terminating
+        #print(unique[np.argmax(frequency)])
+        return  True
+
+    #print(feature_index, split_value)
+    #feature index returned is the index to the column in random_features. So convert to actual column number
+    feature_index = random_features[feature_index]
+    if split_value == 0:
+        print("wtf has happened here!!!!")
+
+    child_node_left = {}
+    parent_node[str(feature_index) + ',' + str(split_value)] = child_node_left
+
+    child_node_right = {}
+    parent_node[str(feature_index) + ',' + str(0)] = child_node_right
+
+    (left_x, left_y, right_x, right_y) = split_by_best_rule(feature_index, split_value, x, y, random_features)
+
+    #check logic in entropy function for when a class has 0 counts
+    random_forest_classifier(left_x, left_y, classes, node_level+1, child_node_left, p_value)
+
+    random_forest_classifier(right_x, right_y, classes, node_level+1, child_node_right, p_value)  
+    return True  
+
