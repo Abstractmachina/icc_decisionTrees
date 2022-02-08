@@ -118,17 +118,13 @@ class DecisionTreeClassifier(object):
         self.prune_nodes_helper(self.model)
 
     # takes the root node as its argument when checking the entire tree
-    def prune_nodes_helper(self, model):
-        term_count = 0
-        # base case
-        #if the keys of the two nodes below us are "terminating_node" then we've found the structure we're looking for - stop recursively checking now.
-        for values in model.values():
-            if "terminating_node" in values.keys():
-                term_count += 1
-            else:
-                self.prune_nodes_helper(values)
+    def prune_nodes_helper(self, node):
+        if (node.left_node.classification and node.right_node.classification):
+            print("Terminating node, left=" + node.left_node.classification + ", right=" + node.right_node.classification)
+        
+        if (not node.left_node.classification):
+            self.prune_nodes_helper(node.left_node)
+        if (not node.right_node.classification):
+            self.prune_nodes_helper(node.right_node)
 
-        if term_count == 2:
-            print(model)
-            return
         
