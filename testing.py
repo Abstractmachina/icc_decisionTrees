@@ -1,4 +1,6 @@
+from posixpath import split
 import numpy as np
+import node
 from read_data import read_dataset
 import math
 from numpy.random import default_rng
@@ -158,7 +160,7 @@ def induce_tree(x, y, classes, node_level, parent_node):
     
     # base case
     if len(np.unique(y)) == 1:
-        parent_node["terminating_node"] = y[0]
+        parent_node.classification = y[0]
         return True
     
     (feature_index, split_value, info_gain) = calculate_best_info_gain(x, y, classes)
@@ -176,11 +178,11 @@ def induce_tree(x, y, classes, node_level, parent_node):
     # create the nodes to the left and right that we will put either a new path into, or
     # put an actual result (A, C etc. )
 
-    child_node_left = {}
-    parent_node[str(feature_index) + ',' + str(split_value)] = child_node_left
-
-    child_node_right = {}
-    parent_node[str(feature_index) + ',' + str(0)] = child_node_right
+    parent_node.feature_index = feature_index
+    parent_node.split_value = split_value
+    parent_node.left_node = node.Node()
+    parent_node.right_node = node.Node()
+    parent_node.data = y
 
     (left_x, left_y, right_x, right_y) = split_by_best_rule(feature_index, split_value, x, y)
 
@@ -241,4 +243,3 @@ def random_forest_classifier(x, y, classes, node_level, parent_node, p_value):
 
     random_forest_classifier(right_x, right_y, classes, node_level+1, child_node_right, p_value)  
     return True  
-

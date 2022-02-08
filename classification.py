@@ -8,8 +8,7 @@
 ##############################################################################
 
 import json
-#TODO: remove posixpath?
-from posixpath import split
+import node
 import numpy as np
 import testing
 
@@ -51,12 +50,12 @@ class DecisionTreeClassifier(object):
         #                 ** TASK 2.1: COMPLETE THIS METHOD **
         #######################################################################    
         classes = np.unique(y)
-        self.model = {}
+        self.model = node.Node()
         testing.induce_tree(x, y, classes, 0, self.model)
         
         # write model to file
-        with open('model.json', 'w') as f:
-            f.write(json.dumps(self.model))
+        # with open('model.json', 'w') as f:
+        #     f.write(json.dumps(self.model))
 
         # set a flag so that we know that the classifier has been trained
         self.is_trained = True
@@ -100,41 +99,43 @@ class DecisionTreeClassifier(object):
                 
         return predictions
         
-    def check_nodes(self, x, model, predictions, row_number):
+    def check_nodes(self, x, node, predictions, row_number):
         while True:
-            # loop through every key at this level of the model to see which is viable
-            #print(k)
-            for key in model.keys():
-                # base case, if we reach a terminating node then set predictions[row_number] to value
-                if (key == "terminating_node"):
-                    predictions[row_number] = model[key]
-                    return
+            # base case - if this node has a classification then use it and end here
+            if (node.classification):
+                predictions[row_number] = node.classification
+                return
 
-                # split the key out into its constituent parts
-                split_key = key.split(',')
-                feature_index = int(split_key[0])
-                value = int(split_key[1])
+            #otherwise we need to check the value of x at our given row_number and feature index
+            feature_value = x[row_number, node.feature_index]
 
-                #do it all again from the next node in the tree.
-                if (x[row_number, feature_index] >= value):
-                    model = model[key]
-                    break
+            if (feature_value >= node.split_value):
+                node = node.left_node
+            else:
+                node = node.right_node
 
     def prune_nodes(self):
         self.prune_nodes_helper(self.model)
 
     # takes the root node as its argument when checking the entire tree
-    def prune_nodes_helper(self, model):
-        term_count = 0
-        # base case
-        #if the keys of the two nodes below us are "terminating_node" then we've found the structure we're looking for - stop recursively checking now.
-        for values in model.values():
-            if "terminating_node" in values.keys():
-                term_count += 1
-            else:
-                self.prune_nodes_helper(values)
+    def prune_nodes_helper(self, node):
+        if (node.left_node.classification and node.right_node.classification):
+            significant_letter = node.get_proportion(0.75)
+            # if we have a significant letter in the node then turn this node
+            # into a terminating node
+            if (significant_letter):
+                node.classification = significant_letter
+                #check accuracy and if it's better now then delete the nodes below
+                # if accuracy > accuracy_before_pruning:
+                    # node.left_node = None
+                    # node.right_node = None
+                # else:
+                    # node.classification = None
+                return
 
-        if term_count == 2:
-            print(model)
-            return
+        if (not node.left_node.classification):
+            self.prune_nodes_helper(node.left_node)
+        if (not node.right_node.classification):
+            self.prune_nodes_helper(node.right_node)
+
         
