@@ -27,6 +27,7 @@ class DecisionTreeClassifier(object):
     """
 
     def __init__(self):
+        self.model = {}
         self.is_trained = False
         self._treeDepth = 1
 
@@ -50,17 +51,12 @@ class DecisionTreeClassifier(object):
         #                 ** TASK 2.1: COMPLETE THIS METHOD **
         #######################################################################    
         classes = np.unique(y)
-        #print("Entropy for the set is: ")
-        #print(testing.calculate_entrophy(x, y, classes))
-        model = {}
-
-
-        testing.induce_tree(x, y, classes, 0, model)
+        self.model = {}
+        testing.induce_tree(x, y, classes, 0, self.model)
         
         # write model to file
-        
         with open('model.json', 'w') as f:
-            f.write(json.dumps(model))
+            f.write(json.dumps(self.model))
 
         # set a flag so that we know that the classifier has been trained
         self.is_trained = True
@@ -97,24 +93,19 @@ class DecisionTreeClassifier(object):
         #######################################################################
         #                 ** TASK 2.2: COMPLETE THIS METHOD **
         #######################################################################
-        
-        # read model from file
-        with open('model.json', 'r') as f:
-            model = json.load(f)
-
+    
         # TODO guarantee there's a better way to do this with numpy but we can look into that in future
         for row_number in range(0, len(x)):
-            self.check_nodes(x, model, predictions, row_number)
+            self.check_nodes(x, self.model, predictions, row_number)
                 
         return predictions
         
     def check_nodes(self, x, model, predictions, row_number):
         while True:
             # loop through every key at this level of the model to see which is viable
-            k = model.keys()
             #print(k)
-            for key in k:
-                # base case, if we reach a terminating node then set predictions[row_number] to v
+            for key in model.keys():
+                # base case, if we reach a terminating node then set predictions[row_number] to value
                 if (key == "terminating_node"):
                     predictions[row_number] = model[key]
                     return
@@ -124,9 +115,26 @@ class DecisionTreeClassifier(object):
                 feature_index = int(split_key[0])
                 value = int(split_key[1])
 
-                #do it all again from the next node, recursively.
+                #do it all again from the next node in the tree.
                 if (x[row_number, feature_index] >= value):
                     model = model[key]
                     break
 
+    def prune_nodes(self):
+        self.prune_nodes_helper(self.model)
+
+    # takes the root node as its argument when checking the entire tree
+    def prune_nodes_helper(self, model):
+        term_count = 0
+        # base case
+        #if the keys of the two nodes below us are "terminating_node" then we've found the structure we're looking for - stop recursively checking now.
+        for values in model.values():
+            if "terminating_node" in values.keys():
+                term_count += 1
+            else:
+                self.prune_nodes_helper(values)
+
+        if term_count == 2:
+            print(model)
+            return
         

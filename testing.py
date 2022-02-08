@@ -158,10 +158,7 @@ def induce_tree(x, y, classes, node_level, parent_node):
     
     # base case
     if len(np.unique(y)) == 1:
-        # I would still prefer that this worked so that it fully replaced the dict with y[0] but
-        # I am struggling to get that to work. This is not a disastrous workaround.
         parent_node["terminating_node"] = y[0]
-        #print(y[0])
         return True
     
     (feature_index, split_value, info_gain) = calculate_best_info_gain(x, y, classes)
@@ -174,10 +171,7 @@ def induce_tree(x, y, classes, node_level, parent_node):
         return  True
     #print(feature_index, split_value)
 
-    # path format is feature_index;split_value, except in the case of the last value which will
-    # be the biggest number in the feature_index column
-    # The path will be read during prediction as "get the value from the feature_index that matches
-    # is less than the split_value" where that value could be either a new path or an actual result
+    (feature_index, split_value) = calculate_best_info_gain(x, y, classes)
 
     # create the nodes to the left and right that we will put either a new path into, or
     # put an actual result (A, C etc. )
@@ -189,8 +183,6 @@ def induce_tree(x, y, classes, node_level, parent_node):
     parent_node[str(feature_index) + ',' + str(0)] = child_node_right
 
     (left_x, left_y, right_x, right_y) = split_by_best_rule(feature_index, split_value, x, y)
-    #print(left_x)
-    #print(left_y)
 
     #check logic in entropy function for when a class has 0 counts
     induce_tree(left_x, left_y, classes, node_level+1, child_node_left)
