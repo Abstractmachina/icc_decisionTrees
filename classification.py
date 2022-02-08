@@ -120,8 +120,15 @@ class DecisionTreeClassifier(object):
     # takes the root node as its argument when checking the entire tree
     def prune_nodes_helper(self, node):
         if (node.left_node.classification and node.right_node.classification):
-            print("Terminating node, left=" + node.left_node.classification + ", right=" + node.right_node.classification)
-            print(node.calculate_most_common())
+            significant_letter = node.get_proportion(0.75)
+            # if we have a significant letter in the node then turn this node
+            # into a terminating node
+            if (significant_letter):
+                node.left_node = None
+                node.right_node = None
+                node.classification = significant_letter
+                return
+
         if (not node.left_node.classification):
             self.prune_nodes_helper(node.left_node)
         if (not node.right_node.classification):
