@@ -27,6 +27,7 @@ if __name__ == "__main__":
     
     (x, y, classes) = read_dataset("data/train_full.txt")
 
+
     (x_test, y_test, classes_test) = read_dataset("data/test.txt")
     print("Training the decision tree...")
     classifier = DecisionTreeClassifier()

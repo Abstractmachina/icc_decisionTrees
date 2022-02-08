@@ -208,5 +208,4 @@ def train_test_k_fold(n_folds, n_instances, proportion_test, random_generator=de
 
         folds.append([train_indices, test_indices])
     
-    print("done with generating set indices")
     return folds

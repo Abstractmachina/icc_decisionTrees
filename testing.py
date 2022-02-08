@@ -96,13 +96,11 @@ def calculate_best_info_gain(x, y, classes):
             proportion = len(filtered_y_left) / (len(filtered_y_left) + len(filtered_y_right))
             info_gained = DB_entrophy - (proportion * entrophy_left + (1 - proportion) * entrophy_right)
             # DONE: update max info gained, best feature, and i if info gained is higher than current best
-            if info_gained > current_max_info_gained:
+            if info_gained >= current_max_info_gained:
                 current_max_info_gained = info_gained
                 current_best_feature_index = feature_index
                 current_best_i = i
-    if current_max_info_gained == 0:
-        print(x)
-        print(y)
+
 
 
     #print(current_best_feature_index, current_best_i)
@@ -124,33 +122,15 @@ def split_by_best_rule(current_best_feature_index, current_best_i, x, y, random_
     filtering = (x[:, current_best_feature_index] >= current_best_i)
     left_x = x[filtering, :]
     left_y = y[filtering]
-    # RIGHT:
     
+    # RIGHT:
     opposite_filtering = make_opposite_filter(current_best_i, current_best_feature_index, x)
     right_x = x[opposite_filtering, :]
     right_y = y[opposite_filtering]
 
-    if len(left_x) == 0 or len(left_y) == 0:
-        print(current_best_feature_index, current_best_i)
-        print(random_features)
-        print(right_x)
-        print(right_y)
-    if len(right_x) == 0 or len(right_x) == 0:
-        print(random_features)
-        print(current_best_feature_index, current_best_i)
-        print(left_x)
-        print(left_y)
     return (left_x, left_y, right_x, right_y)
 
-
-# (a, b, c, d) = split_by_best_rule(current_best_feature_index, current_best_i, x, y)
-
-# TESTING
-#print("--------")
-# print(a)
-#print(b)
-# print(c)
-#print(d)    
+   
 
 
 ### Recursion:
@@ -168,16 +148,11 @@ def induce_tree(x, y, classes, node_level, parent_node):
     #another base case: if splitting yields no information gain, take majority label
     if info_gain == 0:
         unique, frequency = np.unique(y, return_counts=True) #unique array with corresponding count
-        parent_node["terminating_node"] = unique[np.argmax(frequency)] # place value into terminating
-        #print(unique[np.argmax(frequency)])
-        return  True
-    #print(feature_index, split_value)
-
-    (feature_index, split_value) = calculate_best_info_gain(x, y, classes)
+        parent_node.classification = unique[np.argmax(frequency)] # place value into terminating
+        return True
 
     # create the nodes to the left and right that we will put either a new path into, or
     # put an actual result (A, C etc. )
-
     parent_node.feature_index = feature_index
     parent_node.split_value = split_value
     parent_node.left_node = node.Node()
@@ -187,10 +162,8 @@ def induce_tree(x, y, classes, node_level, parent_node):
     (left_x, left_y, right_x, right_y) = split_by_best_rule(feature_index, split_value, x, y)
 
     #check logic in entropy function for when a class has 0 counts
-    induce_tree(left_x, left_y, classes, node_level+1, child_node_left)
-    #print(right_x)
-    #print(right_y)
-    induce_tree(right_x, right_y, classes, node_level+1, child_node_right)
+    induce_tree(left_x, left_y, classes, node_level+1, parent_node.left_node)
+    induce_tree(right_x, right_y, classes, node_level+1, parent_node.right_node)
 
 def random_forest_classifier(x, y, classes, node_level, parent_node, p_value):
 
@@ -199,10 +172,16 @@ def random_forest_classifier(x, y, classes, node_level, parent_node, p_value):
 
     # base case, if there is only 1 class left in set
     if len(np.unique(y)) == 1:
-        parent_node["terminating_node"] = y[0]
+        parent_node.classification = y[0]
         #print(y[0])
         return True
     
+    #if subset has identical features, return most common. this has to happen before generating random features
+    if len(np.unique(x, axis=0)) <= 1:
+        unique, frequency = np.unique(y, return_counts=True)
+        parent_node.classification = unique[np.argmax(frequency)] 
+        return 
+
     #Generate dataset containing only features listed in random_features
     random_features = random.sample(range(0, len(x[0,:])), p_value)
     x_forest = x[:,random_features]
@@ -220,26 +199,22 @@ def random_forest_classifier(x, y, classes, node_level, parent_node, p_value):
     #another base case: if splitting yields no information gain, take majority label
     if info_gain == 0:
         unique, frequency = np.unique(y, return_counts=True) #unique array with corresponding count
-        parent_node["terminating_node"] = unique[np.argmax(frequency)] # place value into terminating
+        parent_node.classification = unique[np.argmax(frequency)] # place value into terminating
         #print(unique[np.argmax(frequency)])
         return  True
 
     #print(feature_index, split_value)
     #feature index returned is the index to the column in random_features. So convert to actual column number
     feature_index = random_features[feature_index]
-    if split_value == 0:
-        print("wtf has happened here!!!!")
 
-    child_node_left = {}
-    parent_node[str(feature_index) + ',' + str(split_value)] = child_node_left
-
-    child_node_right = {}
-    parent_node[str(feature_index) + ',' + str(0)] = child_node_right
+    parent_node.feature_index = feature_index
+    parent_node.split_value = split_value
+    parent_node.left_node = node.Node()
+    parent_node.right_node = node.Node()
+    parent_node.data = y
 
     (left_x, left_y, right_x, right_y) = split_by_best_rule(feature_index, split_value, x, y, random_features)
 
-    #check logic in entropy function for when a class has 0 counts
-    random_forest_classifier(left_x, left_y, classes, node_level+1, child_node_left, p_value)
-
-    random_forest_classifier(right_x, right_y, classes, node_level+1, child_node_right, p_value)  
+    random_forest_classifier(left_x, left_y, classes, node_level+1, parent_node.left_node, p_value)
+    random_forest_classifier(right_x, right_y, classes, node_level+1, parent_node.right_node, p_value)  
     return True  

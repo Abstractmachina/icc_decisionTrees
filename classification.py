@@ -11,6 +11,8 @@ import json
 import node
 import numpy as np
 import testing
+import evaluate
+from numpy.random import default_rng
 
 
 class DecisionTreeClassifier(object):
@@ -28,9 +30,8 @@ class DecisionTreeClassifier(object):
     def __init__(self):
         self.model = {}
         self.is_trained = False
-        self._treeDepth = 1
 
-    def fit(self, x, y, maxDepth = 0):
+    def fit(self, x, y):
         #####TODO: write if_pure(y) tests for len(np.unique(y)) == 1, then return unique[0];
         """ Constructs a decision tree classifier from data
         
@@ -45,13 +46,14 @@ class DecisionTreeClassifier(object):
         # Make sure that x and y have the same number of instances
         assert x.shape[0] == len(y), \
             "Training failed. x and y must have the same number of instances."
-        
         #######################################################################
         #                 ** TASK 2.1: COMPLETE THIS METHOD **
         #######################################################################    
         classes = np.unique(y)
         self.model = node.Node()
         testing.induce_tree(x, y, classes, 0, self.model)
+
+
         
         # write model to file
         # with open('model.json', 'w') as f:
@@ -59,11 +61,6 @@ class DecisionTreeClassifier(object):
 
         # set a flag so that we know that the classifier has been trained
         self.is_trained = True
-        
-    
-    def getFinalTreeDepth(self):
-        return self._treeDepth
-
 
     def predict(self, x):
         """ Predicts a set of samples using the trained DecisionTreeClassifier.

@@ -16,7 +16,7 @@ from random_forest import RandomForestClassifier
 
 
 # TODO: get rid of Y TEST WHEN DONE!!!
-def train_and_predict(x_train, y_train, x_test, y_test):
+def train_and_predict(x_train, y_train, x_test, y_test, x_val=None, y_val=None):
     """ Interface to train and test the new/improved decision tree.
     
     This function is an interface for training and testing the new/improved
@@ -45,20 +45,38 @@ def train_and_predict(x_train, y_train, x_test, y_test):
     #######################################################################
     #                 ** TASK 4.1: COMPLETE THIS FUNCTION **
     #######################################################################
-       
+
 
     # TODO: Train new classifier
     random_forest = RandomForestClassifier(100, int(math.sqrt(len(x_train[0,:]))), 0.67)
-    models = random_forest.run_forest(x_train, y_train, x_test)
+
+    #run classifier
+    random_forest.run_forest(x_train, y_train, x_test)
     print("\nTotal Number of Models: ")
-    print(len(models))
+    print(len(random_forest.models))
 
     #new list of predictions
     predictions_list = []
     all_models_accuracy = np.zeros((100,),dtype=float)
 
     #run every model through predictions
-    for i, model in enumerate(models):
+    for i, model in enumerate(random_forest.models):
+        print(i)
+        #split out a validation set from data
+        seed = 60025+i
+        rg = default_rng(seed)
+        #extract 30% of train data split into 10 folds
+        folds = train_test_k_fold(10, len(x_train), 0.3, rg)
+
+        #takes the first train/test indices, and retrieves the test_indices
+        test_indices = folds[0][1]
+        x_validate = x_train[test_indices]
+        y_validate = y_train[test_indices]
+        #first, prune the model
+        random_forest.prune_nodes(x_validate, y_validate, model)
+
+
+
         predictions_test = random_forest.improved_predict(x_test, model)
         predictions_list.append(predictions_test)
         all_models_accuracy[i] = compute_accuracy(y_test, predictions_test)
@@ -78,3 +96,4 @@ def train_and_predict(x_train, y_train, x_test, y_test):
     return avg_predictions
 
     #return avg_predictions
+
