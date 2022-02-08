@@ -8,9 +8,15 @@
 ##############################################################################
 
 import numpy as np
+import collections
+from numpy.random import default_rng
+from evaluate import compute_accuracy, confusion_matrix, precision, recall, f1_score, train_test_k_fold, k_fold_split
+import math
+from random_forest import RandomForestClassifier
 
 
-def train_and_predict(x_train, y_train, x_test, x_val, y_val):
+# TODO: get rid of Y TEST WHEN DONE!!!
+def train_and_predict(x_train, y_train, x_test, y_test):
     """ Interface to train and test the new/improved decision tree.
     
     This function is an interface for training and testing the new/improved
@@ -42,14 +48,33 @@ def train_and_predict(x_train, y_train, x_test, x_val, y_val):
        
 
     # TODO: Train new classifier
+    random_forest = RandomForestClassifier(100, int(math.sqrt(len(x_train[0,:]))), 0.67)
+    models = random_forest.run_forest(x_train, y_train, x_test)
+    print("\nTotal Number of Models: ")
+    print(len(models))
 
-    # set up an empty (M, ) numpy array to store the predicted labels 
-    # feel free to change this if needed
-    predictions = np.zeros((x_test.shape[0],), dtype=np.object)
-        
-    # TODO: Make predictions on x_test using new classifier        
-        
-    # remember to change this if you rename the variable
-    return predictions
+    #new list of predictions
+    predictions_list = []
+    all_models_accuracy = np.zeros((100,),dtype=float)
 
+    #run every model through predictions
+    for i, model in enumerate(models):
+        predictions_test = random_forest.improved_predict(x_test, model)
+        predictions_list.append(predictions_test)
+        all_models_accuracy[i] = compute_accuracy(y_test, predictions_test)
+    print("\nAccuracyf of each model from the tree: ")
+    print(all_models_accuracy)
 
+    #store the average predictions
+    avg_predictions = np.zeros((x_test.shape[0],), dtype=np.object)
+
+    #count and return most commonly occuring label
+    for i in range(len(predictions_list[0])):
+        cnt = collections.Counter()
+        for j in range(len(predictions_list)):
+            cnt[predictions_list[j][i]] += 1
+        avg_predictions[i] = cnt.most_common(1)[0][0]
+
+    return avg_predictions
+
+    #return avg_predictions
