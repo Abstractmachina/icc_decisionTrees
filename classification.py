@@ -124,9 +124,13 @@ class DecisionTreeClassifier(object):
             # if we have a significant letter in the node then turn this node
             # into a terminating node
             if (significant_letter):
-                node.left_node = None
-                node.right_node = None
                 node.classification = significant_letter
+                #check accuracy and if it's better now then delete the nodes below
+                # if accuracy > accuracy_before_pruning:
+                    # node.left_node = None
+                    # node.right_node = None
+                # else:
+                    # node.classification = None
                 return
 
         if (not node.left_node.classification):
