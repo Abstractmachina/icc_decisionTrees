@@ -29,8 +29,7 @@ class RandomForestClassifier(object):
         self.data_prop = data_prop
     
     def run_forest(self, x_train, y_train, x_test):
-        seed = 5000
-        #60012 was old one
+        seed = 60012
         rg = default_rng(seed)
 
 

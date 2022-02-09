@@ -12,12 +12,12 @@ if __name__ == "__main__":
 
     # Generate a validation set
     # 0.20 reserved for validation. must take 0.4125 of remaining test set to train tree on 33% bootstrap data
-    seed = 60012
+    seed = 60025
     rg = default_rng(seed)
     x_train, x_validate, y_train, y_validate = split_dataset(x, y, 0.2, rg)
 
     print("Training the improved decision tree, and making predictions on the test set...")
-    predictions = train_and_predict(x_train, y_train, x_test, y_test, x_validate, y_validate)
+    predictions = train_and_predict(x_train, y_train, x_test, x_validate, y_validate, y_test)
     print("Predictions: {}".format(predictions))
 
     print("\nAccuracy of prediction: ")

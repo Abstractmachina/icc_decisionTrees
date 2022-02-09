@@ -13,26 +13,27 @@ from evaluate import compute_accuracy
 import math
 from random_forest import RandomForestClassifier
 
-def train_and_predict(x_train, y_train, x_test, y_test, x_val, y_val):
+def train_and_predict(x_train, y_train, x_test, x_val, y_val, y_test=None):
 
     assert x_train.shape[0] == len(y_train) and x_test.shape[0] == len(y_test) and x_val.shape[0] == len(y_val), \
         "Training failed. x and y must have the same number of instances."
 
     # Initialise new random forest classifier class
-    random_forest = RandomForestClassifier(100, int(math.sqrt(len(x_train[0,:]))), 0.5)
+    p_value = int(math.sqrt(len(x_train[0,:])))
+    total_trees = 125
+    data_prop = 0.5
+    random_forest = RandomForestClassifier(total_trees, p_value, data_prop)
 
     # run classifier: Random forest classifier object stores every tree generated in a list
     random_forest.run_forest(x_train, y_train, x_test)
 
     # new list of predictions
     predictions_list = []
-    all_models_accuracy = np.zeros((100,),dtype=float)
+    all_models_accuracy = np.zeros((total_trees,),dtype=float)
 
     # run every model in the classifier's tree list, prune first, and then add prediction 
     # predictions list
     for i, model in enumerate(random_forest.models):
-        print(i)
-
         # We use our validation set that is completely distinct from the data we used to
         # train the models in our random forest. We prune based on model performance on
         # this validation set
