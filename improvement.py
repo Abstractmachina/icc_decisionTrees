@@ -15,7 +15,7 @@ from random_forest import RandomForestClassifier
 
 def train_and_predict(x_train, y_train, x_test, x_val, y_val, y_test=None):
 
-    assert x_train.shape[0] == len(y_train) and x_test.shape[0] == len(y_test) and x_val.shape[0] == len(y_val), \
+    assert x_train.shape[0] == len(y_train) and x_val.shape[0] == len(y_val), \
         "Training failed. x and y must have the same number of instances."
 
     # Initialise new random forest classifier class
