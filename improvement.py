@@ -9,8 +9,7 @@
 
 import numpy as np
 import collections
-from numpy.random import default_rng
-from evaluate import compute_accuracy, confusion_matrix, precision, recall, f1_score, train_test_k_fold, k_fold_split
+from evaluate import compute_accuracy
 import math
 from random_forest import RandomForestClassifier
 
@@ -55,6 +54,4 @@ def train_and_predict(x_train, y_train, x_test, y_test, x_val, y_val):
         avg_predictions[i] = cnt.most_common(1)[0][0]
 
     return avg_predictions
-
-    #return avg_predictions
 

@@ -1,10 +1,7 @@
 import numpy as np
-import collections
-from classification import DecisionTreeClassifier
 from numpy.random import default_rng
-from evaluate import compute_accuracy, confusion_matrix, precision, recall, f1_score, train_test_k_fold, k_fold_split
+from evaluate import compute_accuracy, train_test_k_fold
 import decision_tree_helpers
-import math
 import node
 
 class RandomForestClassifier(object):
@@ -16,7 +13,6 @@ class RandomForestClassifier(object):
     total_trees (int): Parameter that denotes the # of trees we want in our forest
     p_value (int): The number of randomly sampled features to use for splitting
     data_prop (float): the best proportion of data to use for our random_forest training data
-    has_pruned (bool): indicates when we have pruned a tree. If false, no need to prune next set of leaf nodes
     
     Methods:
     improved_fit(x, y): Constructs a decision tree from data X and label y
@@ -31,19 +27,14 @@ class RandomForestClassifier(object):
         self.total_trees = total_trees
         self.p_value = p_value
         self.data_prop = data_prop
-        self.has_pruned = False
     
     def run_forest(self, x_train, y_train, x_test):
         seed = 5000
         #60012 was old one
         rg = default_rng(seed)
 
-        #lists to store outputs
-        cross_validation_acc = []
-        cross_validation_std = []
-        predictions_list = []
 
-        for i, (train_indices, bootstrap_indices) in enumerate(train_test_k_fold(self.total_trees, len(x_train), self.data_prop, rg)):
+        for (_, bootstrap_indices) in train_test_k_fold(self.total_trees, len(x_train), self.data_prop, rg):
             x_forest = x_train[bootstrap_indices]
             y_forest = y_train[bootstrap_indices]
             

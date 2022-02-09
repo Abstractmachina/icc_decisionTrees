@@ -1,28 +1,29 @@
 import numpy as np
 from numpy.random import default_rng
 
-def read_dataset(filepath): # eg. "data/train_full.txt" 
+def read_dataset(filepath): 
     """Reads a given dataset.
 
     Args:
-        filepath txt: txt file; comma del; 
+        filepath txt: txt file; comma delimited
+        e.g. "data/train_full.txt"; 
         last col is dependent var which is str
         other cols are independent var which are int
 
     Returns:
         tuple: a tuple of 3 numpy arrays: x, y, class
     """
-    x = []
+    x_labels = []
     y_labels = []
 
     for row in open(filepath):
         if row.strip() != "": 
             row = row.strip().split(",")
-            x.append(list(map(int, row[:-1]))) 
+            x_labels.append(list(map(int, row[:-1]))) 
             y_labels.append(row[-1])
 
     classes = np.unique(y_labels) 
-    x = np.array(x)
+    x = np.array(x_labels)
     y = np.array(y_labels)
 
     return (x, y, classes)

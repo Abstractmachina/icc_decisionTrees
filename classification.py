@@ -7,11 +7,9 @@
 # You are free to add any other methods as needed. 
 ##############################################################################
 
-import json
 import node
 import numpy as np
 import decision_tree_helpers
-import evaluate
 from numpy.random import default_rng
 
 

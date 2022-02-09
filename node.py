@@ -12,6 +12,7 @@ class Node():
     def __str__(self):
         return str(self.data)
 
+    # was tested, didn't work as well as get_proportion. Keeping this for future development
     def most_common(self):
         fdist=dict(zip(*np.unique(self.data, return_counts=True)))
         return list(fdist)[-1]

@@ -1,11 +1,7 @@
-import numpy as np
-import collections
-
-from classification import DecisionTreeClassifier
 from improvement import train_and_predict
 from read_data import read_dataset, split_dataset
 from numpy.random import default_rng
-from evaluate import compute_accuracy, confusion_matrix, precision, recall, f1_score, train_test_k_fold, k_fold_split
+from evaluate import compute_accuracy, confusion_matrix, precision, recall, f1_score
 
 if __name__ == "__main__":
     print("Loading the training dataset...")

@@ -1,6 +1,5 @@
 import numpy as np
 from read_data import read_dataset
-import math
 from numpy.random import default_rng
 
 ### Evaluation (basic)
@@ -39,7 +38,6 @@ def confusion_matrix(y_gold, y_prediction, class_labels=None):
     for (i, label) in enumerate(class_labels):
         # get predictions where the ground truth is the current class label
         indices = (y_gold == label)
-        gold = y_gold[indices]
         predictions = y_prediction[indices]
 
         # quick way to get the counts per label
@@ -128,8 +126,8 @@ def f1_score(y_gold, y_prediction):
             - macro-f1 is macro-averaged f1-score (a float) 
     """
 
-    (precisions, macro_p) = precision(y_gold, y_prediction)
-    (recalls, macro_r) = recall(y_gold, y_prediction)
+    (precisions, _) = precision(y_gold, y_prediction)
+    (recalls, _) = recall(y_gold, y_prediction)
 
     # just to make sure they are of the same length
     assert len(precisions) == len(recalls)

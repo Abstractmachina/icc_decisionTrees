@@ -1,13 +1,11 @@
 import numpy as np
 import node
-from read_data import read_dataset
 import math
-from numpy.random import default_rng
 import random
 
 
-def calculate_entrophy(y, classes):
-    """Calculates entrophy 
+def calculate_entropy(y, classes):
+    """Calculates entropy 
 
     Args:
         x int numpy array: matrix of numpy arrays
@@ -15,7 +13,7 @@ def calculate_entrophy(y, classes):
         classes String: labels
 
     Returns:
-        [float]: [entrophy]
+        [float]: [entropy]
     """
     current_num_obs = len(y)
     freq_labels = dict.fromkeys(classes, 0)
@@ -25,22 +23,22 @@ def calculate_entrophy(y, classes):
     # sanity check to ensure all observations accounted for
     assert(sum(freq_labels.values()) == current_num_obs)
 
-    entrophy = 0.0
+    entropy = 0.0
     for label, value in freq_labels.items():
         if (value != 0):
             probability = (value / current_num_obs)
             if (probability > 0 and probability < 1):
-                entrophy -= probability * math.log(probability, 2)
+                entropy -= probability * math.log(probability, 2)
    
-    return entrophy
+    return entropy
 
 def make_opposite_filter(i, feature_index, x):
     opposite_filter = (x[:, feature_index] < i)
     return opposite_filter
 
 def calculate_best_info_gain(x, y, classes):
-    # Calculate dataset entrophy pre-split
-    DB_entrophy = calculate_entrophy(y, classes)
+    # Calculate dataset entropy pre-split
+    DB_entropy = calculate_entropy(y, classes)
     num_of_features = len(x[0,:])
     num_of_obs = len(y)
 
@@ -58,16 +56,16 @@ def calculate_best_info_gain(x, y, classes):
             # LEFT:
             filtering = (x[:, feature_index] >= i)
             filtered_y_left = y[filtering]
-            # calculate entrophy for this particular split (left side):
-            entrophy_left = calculate_entrophy(filtered_y_left, classes) 
+            # calculate entropy for this particular split (left side):
+            entropy_left = calculate_entropy(filtered_y_left, classes) 
             # RIGHT:
             opposite_filtering = make_opposite_filter(i, feature_index, x)
             filtered_y_right = y[opposite_filtering]
-            # calculate entrophy for this particular split (right side):
-            entrophy_right = calculate_entrophy(filtered_y_right, classes)
+            # calculate entropy for this particular split (right side):
+            entropy_right = calculate_entropy(filtered_y_right, classes)
             # Information gained:
             proportion = len(filtered_y_left) / (len(filtered_y_left) + len(filtered_y_right))
-            info_gained = DB_entrophy - (proportion * entrophy_left + (1 - proportion) * entrophy_right)
+            info_gained = DB_entropy - (proportion * entropy_left + (1 - proportion) * entropy_right)
             # update max info gained, best feature, and i if info gained is higher than current best
             if info_gained >= current_max_info_gained:
                 current_max_info_gained = info_gained
