@@ -1,10 +1,9 @@
 import numpy as np
 import collections
-from posixpath import split
 from classification import DecisionTreeClassifier
 from numpy.random import default_rng
 from evaluate import compute_accuracy, confusion_matrix, precision, recall, f1_score, train_test_k_fold, k_fold_split
-import testing
+import decision_tree_helpers
 import math
 import node
 
@@ -12,16 +11,21 @@ class RandomForestClassifier(object):
     """ Random forest classifier
     
     Attributes:
+    models (list): Stores all trained models that are part of our random forest
     is_trained (bool): Keeps track of whether the classifier has been trained
+    total_trees (int): Parameter that denotes the # of trees we want in our forest
+    p_value (int): The number of randomly sampled features to use for splitting
+    data_prop (float): the best proportion of data to use for our random_forest training data
+    has_pruned (bool): indicates when we have pruned a tree. If false, no need to prune next set of leaf nodes
     
     Methods:
-    fit(x, y): Constructs a decision tree from data X and label y
-    predict(x): Predicts the class label of samples X
+    improved_fit(x, y): Constructs a decision tree from data X and label y
+    improved_predict(x, model): Returns an np array of predictions, to be used to calculate modal
+                                class label
     prune(x_val, y_val): Post-prunes the decision tree
     """
 
-    #construct tree
-    def __init__(self, total_trees=100, p_value=4, data_prop=0.67):
+    def __init__(self, total_trees, p_value, data_prop):
         self.models = []
         self.is_trained = False
         self.total_trees = total_trees
@@ -30,7 +34,7 @@ class RandomForestClassifier(object):
         self.has_pruned = False
     
     def run_forest(self, x_train, y_train, x_test):
-        seed = 60025
+        seed = 5000
         #60012 was old one
         rg = default_rng(seed)
 
@@ -39,80 +43,38 @@ class RandomForestClassifier(object):
         cross_validation_std = []
         predictions_list = []
 
-        for i, (train_indices, test_indices) in enumerate(train_test_k_fold(self.total_trees, len(x_train), self.data_prop, rg)):
-            x_forest = x_train[train_indices]
-            y_forest = y_train[train_indices]
-            x_validate = x_train[test_indices]
-            y_validate = y_train[test_indices]
+        for i, (train_indices, bootstrap_indices) in enumerate(train_test_k_fold(self.total_trees, len(x_train), self.data_prop, rg)):
+            x_forest = x_train[bootstrap_indices]
+            y_forest = y_train[bootstrap_indices]
             
             #train tree using random forest classifier
             self.improved_fit(x_forest, y_forest)
 
-            #predict using the tree on validate set
-            predictions = self.improved_predict(x_validate, self.models[i])
-            cross_validation_acc.append(compute_accuracy(y_validate, predictions))
-
-        # set up an empty (M, ) numpy array to store the predicted labels 
-        # feel free to change this if needed
-        avg_acc = sum(cross_validation_acc)/len(cross_validation_acc)
-        print()
-        print("\nAverage accuracy of cross validation: ")
-        print(avg_acc)
-
 
     def improved_fit(self, x, y):
-       #####TODO: write if_pure(y) tests for len(np.unique(y)) == 1, then return unique[0];
-        """ Constructs a decision tree classifier from data
-        
-        Args:
-        x (numpy.ndarray): Instances, numpy array of shape (N, K) 
-                           N is the number of instances
-                           K is the number of attributes
-        y (numpy.ndarray): Class labels, numpy array of shape (N, )
-                           Each element in y is a str 
-        """
-        
         # Make sure that x and y have the same number of instances
         assert x.shape[0] == len(y), \
             "Training failed. x and y must have the same number of instances."
   
         classes = np.unique(y)
         model = node.Node()
-        testing.random_forest_classifier(x, y, classes, 0, model, self.p_value)
+        decision_tree_helpers.random_forest_classifier(x, y, classes, 0, model, self.p_value)
 
         # set a flag so that we know that the classifier has been trained
         self.is_trained = True
         self.models.append(model)
 
     def improved_predict(self, x, model):
-        """ Predicts a set of samples using the trained DecisionTreeClassifier.
-        
-        Assumes that the DecisionTreeClassifier has already been trained.
-        
-        Args:
-        x (numpy.ndarray): Instances, numpy array of shape (M, K) 
-                            M is the number of test instances
-                            K is the number of attributes
-        
-        Returns:
-        numpy.ndarray: A numpy array of shape (M, ) containing the predicted
-                        class label for each instance in x
-        """
+        # make sure model has been trained
         if not self.is_trained:
             raise Exception("DecisionTreeClassifier has not yet been trained.")
 
+        # store predictions in a np array
         predictions = np.zeros((x.shape[0],), dtype=np.object)
-        
-        
-        #######################################################################
-        #                 ** TASK 2.2: COMPLETE THIS METHOD **
-        #######################################################################
 
-        # TODO guarantee there's a better way to do this with numpy but we can look into that in future
         for row_number in range(0, len(x)):
             self.check_nodes(x, model, predictions, row_number)
         
-        #print("done with predicting")
         return predictions
         
     def check_nodes(self, x, node, predictions, row_number):

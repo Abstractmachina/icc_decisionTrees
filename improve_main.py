@@ -9,23 +9,19 @@ from evaluate import compute_accuracy, confusion_matrix, precision, recall, f1_s
 
 if __name__ == "__main__":
     print("Loading the training dataset...")
-    '''x_train = np.array([
-            [5,7,1],
-            [4,6,2],
-            [4,6,3], 
-            [1,3,1], 
-            [2,1,2], 
-            [5,2,6]
-        ])
-    
-    y_train = np.array(["A", "A", "A", "C", "C", "C"])'''
-    
+
     (x, y, classes) = read_dataset("data/train_full.txt")
 
     (x_test, y_test, classes_test) = read_dataset("data/test.txt")
 
+    # Generate a validation set
+    # 0.20 reserved for validation. must take 0.4125 of remaining test set to train tree on 33% bootstrap data
+    seed = 60012
+    rg = default_rng(seed)
+    x_train, x_validate, y_train, y_validate = split_dataset(x, y, 0.2, rg)
+
     print("Training the improved decision tree, and making predictions on the test set...")
-    predictions = train_and_predict(x, y, x_test, y_test)
+    predictions = train_and_predict(x_train, y_train, x_test, y_test, x_validate, y_validate)
     print("Predictions: {}".format(predictions))
 
     print("\nAccuracy of prediction: ")

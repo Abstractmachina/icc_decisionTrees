@@ -14,79 +14,40 @@ from evaluate import compute_accuracy, confusion_matrix, precision, recall, f1_s
 import math
 from random_forest import RandomForestClassifier
 
+def train_and_predict(x_train, y_train, x_test, y_test, x_val, y_val):
 
-# TODO: get rid of Y TEST WHEN DONE!!!
-def train_and_predict(x_train, y_train, x_test, y_test, x_val=None, y_val=None):
-    """ Interface to train and test the new/improved decision tree.
-    
-    This function is an interface for training and testing the new/improved
-    decision tree classifier. 
+    assert x_train.shape[0] == len(y_train) and x_test.shape[0] == len(y_test) and x_val.shape[0] == len(y_val), \
+        "Training failed. x and y must have the same number of instances."
 
-    x_train and y_train should be used to train your classifier, while 
-    x_test should be used to test your classifier. 
-    x_val and y_val may optionally be used as the validation dataset. 
-    You can just ignore x_val and y_val if you do not need a validation dataset.
+    # Initialise new random forest classifier class
+    random_forest = RandomForestClassifier(100, int(math.sqrt(len(x_train[0,:]))), 0.5)
 
-    Args:
-    x_train (numpy.ndarray): Training instances, numpy array of shape (N, K) 
-                       N is the number of instances
-                       K is the number of attributes
-    y_train (numpy.ndarray): Class labels, numpy array of shape (N, )
-                       Each element in y is a str 
-    x_test (numpy.ndarray): Test instances, numpy array of shape (M, K) 
-                            M is the number of test instances
-                            K is the number of attributes
-    x_val (numpy.ndarray): Validation instances, numpy array of shape (L, K) 
-                       L is the number of validation instances
-                       K is the number of attributes
-    y_val (numpy.ndarray): Class labels of validation set, numpy array of shape (L, )
-    """
-
-    #######################################################################
-    #                 ** TASK 4.1: COMPLETE THIS FUNCTION **
-    #######################################################################
-
-
-    # TODO: Train new classifier
-    random_forest = RandomForestClassifier(100, int(math.sqrt(len(x_train[0,:]))), 0.67)
-
-    #run classifier
+    # run classifier: Random forest classifier object stores every tree generated in a list
     random_forest.run_forest(x_train, y_train, x_test)
-    print("\nTotal Number of Models: ")
-    print(len(random_forest.models))
 
-    #new list of predictions
+    # new list of predictions
     predictions_list = []
     all_models_accuracy = np.zeros((100,),dtype=float)
 
-    #run every model through predictions
+    # run every model in the classifier's tree list, prune first, and then add prediction 
+    # predictions list
     for i, model in enumerate(random_forest.models):
         print(i)
-        #split out a validation set from data
-        seed = 60025+i
-        rg = default_rng(seed)
-        #extract 30% of train data split into 10 folds
-        folds = train_test_k_fold(10, len(x_train), 0.3, rg)
 
-        #takes the first train/test indices, and retrieves the test_indices
-        test_indices = folds[0][1]
-        x_validate = x_train[test_indices]
-        y_validate = y_train[test_indices]
-        #first, prune the model
-        random_forest.prune_nodes(x_validate, y_validate, model)
+        # We use our validation set that is completely distinct from the data we used to
+        # train the models in our random forest. We prune based on model performance on
+        # this validation set
 
-
+        random_forest.prune_nodes(x_val, y_val, model)
 
         predictions_test = random_forest.improved_predict(x_test, model)
         predictions_list.append(predictions_test)
         all_models_accuracy[i] = compute_accuracy(y_test, predictions_test)
-    print("\nAccuracyf of each model from the tree: ")
-    print(all_models_accuracy)
 
-    #store the average predictions
+    # Store the most commonly occuring prediction into new prediction array
     avg_predictions = np.zeros((x_test.shape[0],), dtype=np.object)
 
-    #count and return most commonly occuring label
+    # count and return most commonly occuring label
     for i in range(len(predictions_list[0])):
         cnt = collections.Counter()
         for j in range(len(predictions_list)):

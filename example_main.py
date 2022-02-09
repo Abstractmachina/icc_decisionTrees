@@ -14,17 +14,6 @@ from evaluate import compute_accuracy, confusion_matrix, precision, recall, f1_s
 
 if __name__ == "__main__":
     print("Loading the training dataset...")
-    '''x_train = np.array([
-            [5,7,1],
-            [4,6,2],
-            [4,6,3], 
-            [1,3,1], 
-            [2,1,2], 
-            [5,2,6]
-        ])
-    
-    y_train = np.array(["A", "A", "A", "C", "C", "C"])'''
-    
     (x, y, classes) = read_dataset("data/train_full.txt")
 
 
@@ -44,7 +33,7 @@ if __name__ == "__main__":
     seed = 60012
     rg = default_rng(seed)
 
-    #evaluate output
+    ################### Evaluate output ###################
     print("Accuracy of prediction: ")
     print(compute_accuracy(y_test, predictions))
     print("\nConfusion matrix: ")
@@ -67,13 +56,12 @@ if __name__ == "__main__":
     print(macro_f)
 
 
-    #Cross validation
-    n_folds = 30
-    cross_validation_acc = []
-    cross_validation_std = []
+    ################ Cross validation #####################
+    n_folds = 10
+    cross_validation_acc = np.zeros((n_folds, ), dtype=float)
     predictions_list = []
 
-    for (train_indices, test_indices) in train_test_k_fold(n_folds, len(x), 0.3, rg):
+    for i, (train_indices, test_indices) in enumerate(train_test_k_fold(n_folds, len(x), 0.3, rg)):
         
         x_train = x[train_indices]
         y_train = y[train_indices]
@@ -83,29 +71,24 @@ if __name__ == "__main__":
         classifier = DecisionTreeClassifier()
         classifier.fit(x_train, y_train)
         predictions = classifier.predict(x_validate)
-        cross_validation_acc.append(compute_accuracy(y_validate, predictions))
+        cross_validation_acc[i] = compute_accuracy(y_validate, predictions)
 
         predictions_test = classifier.predict(x_test)
         predictions_list.append(predictions_test)
 
-    
-    #print(cross_validation_acc)
-    avg_acc = sum(cross_validation_acc)/len(cross_validation_acc)
     print("\nAverage accuracy of cross validation: ")
-    print(avg_acc)
+    print(cross_validation_acc.mean())
+    print("\nStandard Deviation: ")
+    print(cross_validation_acc.std())
     avg_predictions = []
-    #print(predictions_list)
-    #predictions_final
-
-    #0 - length of entire dataset
 
     for i in range(len(predictions_list[0])):
         cnt = collections.Counter()
         for j in range(len(predictions_list)):
             cnt[predictions_list[j][i]] += 1
-        #print(cnt.most_common(1))
         avg_predictions.append(cnt.most_common(1)[0][0])
     
+    print("\nModal predictions from ", n_folds, " cross validations: ")
     print(avg_predictions)
     new_avg = compute_accuracy(y_test, avg_predictions)
     print("Avg accuracy using averaged prediction set from 10 models: ")
